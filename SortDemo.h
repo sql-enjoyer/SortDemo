@@ -3,18 +3,18 @@
 #include <vector>
 #include <thread>
 #include <chrono>
-#include <cstdlib>  
-#include <ctime>    
+#include <sys/ioctl.h>
+#include <unistd.h>
 using namespace std;
 
 class SortDemo{
   public:
-    SortDemo(vector<int> inp, int h, int w):arr(inp), height(h), width(w){};
+    SortDemo(vector<int> inp):arr(inp) {};
     void setArr(const vector<int>& inp) { arr = inp; }
 
-    void const demo(const vector<int>& arr, const int& height_screen, const int& width_screen);
+    void const demo(const vector<int>& arr);
 
-    //sprting helpers
+    //sorting helpers
     bool isSorted();
     void countSort(int exp);
     int getMax();
@@ -28,19 +28,21 @@ class SortDemo{
 
   private:
     vector<int> arr;
-    int height;
-    int width;
 };
 
-void const SortDemo::demo(const vector<int>& arr, const int& height_screen, const int& width_screen){
+void const SortDemo::demo(const vector<int>& arr){
+  struct winsize w;
+  ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+  int width_screen = w.ws_col, height_screen = w.ws_row;
+
   const int border = (width_screen - arr.size()*3) / 2;
   char screen[height_screen*width_screen];
 
   int max = arr[0];
   for(int i=1; i < arr.size(); ++i) if (arr[i] > max) max = arr[i];
 
-  bool flag = false;
   int index = 0;
+  bool flag = false;
   for(int i=0; i<width_screen; ++i){
     if(i < border || i > width_screen-border+(1*(arr.size()%2!=0)) || (i-border)%3 == 0) {
       if(flag) ++index;
@@ -67,7 +69,7 @@ void SortDemo::bubbleSort() {
            swap(arr[j], arr[j + 1]);
            swapped = true;
         }
-        demo(arr, height, width);
+        demo(arr);
         this_thread::sleep_for(chrono::milliseconds(17));
     }
     if (!swapped) break;
@@ -85,7 +87,7 @@ void SortDemo::shakerSort() {
       if (arr[i - 1] > arr[i]) {
         swap(arr[i - 1], arr[i]);
       }
-      demo(arr, height, width);
+      demo(arr);
       this_thread::sleep_for(chrono::milliseconds(17));
     }
     ++left;
@@ -93,7 +95,7 @@ void SortDemo::shakerSort() {
       if (arr[i] > arr[i + 1]) {
         swap(arr[i], arr[i + 1]);
       }
-      demo(arr, height, width);
+      demo(arr);
       this_thread::sleep_for(chrono::milliseconds(17));
     }
     --right;
@@ -109,7 +111,7 @@ void SortDemo::combSort() {
       if (arr[i] > arr[i + step]) {
         swap(arr[i], arr[i + step]);
       }
-      demo(arr, height, width);
+      demo(arr);
       this_thread::sleep_for(chrono::milliseconds(17));
     }
     step /= factor;
@@ -130,7 +132,7 @@ void SortDemo::bogoSort() {
         for (size_t i = 0; i < arr.size(); ++i) {
             size_t j = rand() % arr.size();
             swap(arr[i], arr[j]);
-            demo(arr, height, width);
+            demo(arr);
             this_thread::sleep_for(chrono::milliseconds(17));
         }
     }
@@ -156,7 +158,7 @@ void SortDemo::countSort(int exp){
     }
     for (i = 0; i < arr.size(); i++) {
       arr[i] = output[i];
-      demo(arr, height, width);
+      demo(arr);
       this_thread::sleep_for(chrono::milliseconds(17));
     }
 }
