@@ -33,7 +33,7 @@ class SortDemo{
 void const SortDemo::demo(const vector<int>& arr, const int& wait){
   struct winsize w;
   ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-  int width_screen = w.ws_col, height_screen = w.ws_row;
+  int width_screen = w.ws_col, height_screen = w.ws_row-1;
 
   const int border = (width_screen - arr.size()*3) / 2;
   char screen[height_screen*width_screen];
