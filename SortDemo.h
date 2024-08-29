@@ -12,7 +12,7 @@ class SortDemo{
     SortDemo(vector<int> inp):arr(inp) {};
     void setArr(const vector<int>& inp) { arr = inp; }
 
-    void const demo(const vector<int>& arr);
+    void const demo(const vector<int>& arr, const int& wait);
 
     //sorting helpers
     bool isSorted();
@@ -30,7 +30,7 @@ class SortDemo{
     vector<int> arr;
 };
 
-void const SortDemo::demo(const vector<int>& arr){
+void const SortDemo::demo(const vector<int>& arr, const int& wait){
   struct winsize w;
   ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
   int width_screen = w.ws_col, height_screen = w.ws_row;
@@ -56,6 +56,7 @@ void const SortDemo::demo(const vector<int>& arr){
   }
   for(char i : screen) cout << i;
   cout << endl;
+  this_thread::sleep_for(chrono::milliseconds(wait));
 }
 
 void SortDemo::bubbleSort() {
@@ -69,8 +70,7 @@ void SortDemo::bubbleSort() {
            swap(arr[j], arr[j + 1]);
            swapped = true;
         }
-        demo(arr);
-        this_thread::sleep_for(chrono::milliseconds(17));
+        demo(arr, 17);
     }
     if (!swapped) break;
   }
@@ -87,16 +87,14 @@ void SortDemo::shakerSort() {
       if (arr[i - 1] > arr[i]) {
         swap(arr[i - 1], arr[i]);
       }
-      demo(arr);
-      this_thread::sleep_for(chrono::milliseconds(17));
+      demo(arr, 17);
     }
     ++left;
     for (int i = left; i < right; ++i) {
       if (arr[i] > arr[i + 1]) {
         swap(arr[i], arr[i + 1]);
       }
-      demo(arr);
-      this_thread::sleep_for(chrono::milliseconds(17));
+      demo(arr, 17);
     }
     --right;
   }
@@ -111,8 +109,7 @@ void SortDemo::combSort() {
       if (arr[i] > arr[i + step]) {
         swap(arr[i], arr[i + step]);
       }
-      demo(arr);
-      this_thread::sleep_for(chrono::milliseconds(17));
+      demo(arr, 17);
     }
     step /= factor;
   }
@@ -132,8 +129,7 @@ void SortDemo::bogoSort() {
         for (size_t i = 0; i < arr.size(); ++i) {
             size_t j = rand() % arr.size();
             swap(arr[i], arr[j]);
-            demo(arr);
-            this_thread::sleep_for(chrono::milliseconds(17));
+            demo(arr, 17);
         }
     }
 }
@@ -158,8 +154,7 @@ void SortDemo::countSort(int exp){
     }
     for (i = 0; i < arr.size(); i++) {
       arr[i] = output[i];
-      demo(arr);
-      this_thread::sleep_for(chrono::milliseconds(17));
+      demo(arr, 17);
     }
 }
 
