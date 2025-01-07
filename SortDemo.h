@@ -6,25 +6,26 @@
 #include <chrono>
 #include <sys/ioctl.h>
 #include <unistd.h>
-using namespace std;
 
 
 template<class T>
 class basic_demo {
 private:
-  int max;  // Max element in collection
+  int max;  // Max element in collection,
+            // need for cumpute column height
   int wait; // Delay
 
 protected:
-  vector<T>* v;
+  std::vector<T>* v;
 
 public:
   basic_demo(std::vector<T>* iv, const int& iw = 17) 
     : v(iv), wait(iw), max(*max_element(iv->begin(), iv->end())) {}
 
-  void setArr(const vector<int>* iv) { v = iv; }
+  void setArr(const std::vector<int>* iv) { v = iv; }
 
   void demo() const {
+      // Find console size
       struct winsize w;
       if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == -1) {
           perror("ioctl");
@@ -32,18 +33,22 @@ public:
       }
       int width_screen = w.ws_col, height_screen = w.ws_row - 1;
 
+      // Edge padding
       const int border = (width_screen - v->size() * 3) / 2;
+      // Create empty screen
       std::vector<char> screen(height_screen * width_screen, ' ');
 
       int index = 0;
       bool flag = false;
       for (int i = 0; i < width_screen; ++i) {
+          // Paddings
           if (i < border || i > width_screen - border + (1 * (v->size() % 2 != 0)) || (i - border) % 3 == 0) {
               if (flag && index < v->size()) ++index;
               flag = false;
           } else {
               flag = true;
           }
+          //Columns
           for (int j = 0; j < height_screen; ++j) {
               if (flag && static_cast<float>(height_screen - j) / height_screen <= static_cast<float>((*v)[index]) / max) {
                   screen[i + j * width_screen] = '#';
@@ -52,26 +57,29 @@ public:
               }
           }
       }
+
+      // Screen output
       for (int j = 0; j < height_screen; ++j) {
           for (int i = 0; i < width_screen; ++i) {
               std::cout << screen[i + j * width_screen];
           }
           std::cout << '\n';
       }
+      // Display delay 
       std::this_thread::sleep_for(std::chrono::milliseconds(wait));
   }
 };
 
 
 struct SortDemo : basic_demo<int>{
-  SortDemo(vector<int>* iv) : basic_demo<int>(iv) {};
+  SortDemo(std::vector<int>* iv) : basic_demo<int>(iv) {};
 
-  //sorting helpers
+  // Sorting helpers
   bool isSorted();
   void countSort(int exp);
   int  getMax();
 
-  // sorting methods
+  // Sorting methods
   void bubbleSort();
   void shakerSort();
   void combSort();
@@ -87,7 +95,7 @@ void SortDemo::bubbleSort() {
     swapped = false;
     for (int j = 0; j < n - i - 1; j++) {
         if ((*v)[j] > (*v)[j + 1]) {
-           swap((*v)[j], (*v)[j + 1]);
+           std::swap((*v)[j], (*v)[j + 1]);
            swapped = true;
         }
         demo();
@@ -105,14 +113,14 @@ void SortDemo::shakerSort() {
   while (left <= right) {
     for (int i = right; i > left; --i) {
       if ((*v)[i - 1] > (*v)[i]) {
-        swap((*v)[i - 1], (*v)[i]);
+        std::swap((*v)[i - 1], (*v)[i]);
       }
       demo();
     }
     ++left;
     for (int i = left; i < right; ++i) {
       if ((*v)[i] > (*v)[i + 1]) {
-        swap((*v)[i], (*v)[i + 1]);
+        std::swap((*v)[i], (*v)[i + 1]);
       }
       demo();
     }
@@ -127,7 +135,7 @@ void SortDemo::combSort() {
   while (step >= 1) {
     for (int i = 0; i + step < v->size(); ++i) {
       if ((*v)[i] > (*v)[i + step]) {
-        swap((*v)[i], (*v)[i + step]);
+        std::swap((*v)[i], (*v)[i + step]);
       }
       demo();
     }
@@ -148,7 +156,7 @@ void SortDemo::bogoSort() {
     while (!isSorted()) {
         for (size_t i = 0; i < v->size(); ++i) {
             size_t j = rand() % v->size();
-            swap((*v)[i], (*v)[j]);
+            std::swap((*v)[i], (*v)[j]);
             demo();
         }
     }
