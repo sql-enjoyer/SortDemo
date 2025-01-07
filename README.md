@@ -5,13 +5,18 @@ A simple application to display the sorting process in the console
 **SortDemo.h** - header with main class **SortDemo**.
 
 **main.cpp** - file with included class and default calls.
+
+## Code Review
+1. `class basic_demo` - organizes the output of a vector to the console.
+2. `class SortDemo` - sorting algorithms.
+
 ## Guide
 1. Сreate a class object with the argument as a `vector`: 
 ```
 vector<int> arr{11, 12, 23, 10, 29, 19, 8, 4, 26, 30};
 SortDemo root(arr);
 ```
-_`void setArr(const vector<int>& inp)`_ - for set another vector.
+_`void setArr(const vector<int>* inp)`_ - for set another vector.
 
 2. Call sort function: `root.bogoSort()`
 
