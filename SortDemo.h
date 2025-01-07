@@ -1,5 +1,6 @@
 #pragma once
 #include <iostream>
+#include <algorithm>
 #include <vector>
 #include <thread>
 #include <chrono>
@@ -7,94 +8,113 @@
 #include <unistd.h>
 using namespace std;
 
-class SortDemo{
-  public:
-    SortDemo(vector<int> inp):arr(inp) {};
-    void setArr(const vector<int>& inp) { arr = inp; }
 
-    void const demo(const vector<int>& arr, const int& wait);
+template<class T>
+class basic_demo {
+private:
+  int max;  // Max element in collection
+  int wait; // Delay
 
-    //sorting helpers
-    bool isSorted();
-    void countSort(int exp);
-    int getMax();
+protected:
+  vector<T>* v;
 
-    // sorting methods
-    void bubbleSort();
-    void shakerSort();
-    void combSort();
-    void bogoSort();
-    void radixSort();
+public:
+  basic_demo(std::vector<T>* iv, const int& iw = 17) 
+    : v(iv), wait(iw), max(*max_element(iv->begin(), iv->end())) {}
 
-  private:
-    vector<int> arr;
+  void setArr(const vector<int>* iv) { v = iv; }
+
+  void demo() const {
+      struct winsize w;
+      if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == -1) {
+          perror("ioctl");
+          return;
+      }
+      int width_screen = w.ws_col, height_screen = w.ws_row - 1;
+
+      const int border = (width_screen - v->size() * 3) / 2;
+      std::vector<char> screen(height_screen * width_screen, ' ');
+
+      int index = 0;
+      bool flag = false;
+      for (int i = 0; i < width_screen; ++i) {
+          if (i < border || i > width_screen - border + (1 * (v->size() % 2 != 0)) || (i - border) % 3 == 0) {
+              if (flag && index < v->size()) ++index;
+              flag = false;
+          } else {
+              flag = true;
+          }
+          for (int j = 0; j < height_screen; ++j) {
+              if (flag && static_cast<float>(height_screen - j) / height_screen <= static_cast<float>((*v)[index]) / max) {
+                  screen[i + j * width_screen] = '#';
+              } else {
+                  screen[i + j * width_screen] = ' ';
+              }
+          }
+      }
+      for (int j = 0; j < height_screen; ++j) {
+          for (int i = 0; i < width_screen; ++i) {
+              std::cout << screen[i + j * width_screen];
+          }
+          std::cout << '\n';
+      }
+      std::this_thread::sleep_for(std::chrono::milliseconds(wait));
+  }
 };
 
-void const SortDemo::demo(const vector<int>& arr, const int& wait){
-  struct winsize w;
-  ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-  int width_screen = w.ws_col, height_screen = w.ws_row-1;
 
-  const int border = (width_screen - arr.size()*3) / 2;
-  char screen[height_screen*width_screen];
+struct SortDemo : basic_demo<int>{
+  SortDemo(vector<int>* iv) : basic_demo<int>(iv) {};
 
-  int max = arr[0];
-  for(int i=1; i < arr.size(); ++i) if (arr[i] > max) max = arr[i];
+  //sorting helpers
+  bool isSorted();
+  void countSort(int exp);
+  int  getMax();
 
-  int index = 0;
-  bool flag = false;
-  for(int i=0; i<width_screen; ++i){
-    if(i < border || i > width_screen-border+(1*(arr.size()%2!=0)) || (i-border)%3 == 0) {
-      if(flag) ++index;
-      flag = false;
-    }
-    else flag = true;
-    for(int j=0; j<height_screen; ++j){
-      if(flag && (float) (height_screen-j)/height_screen <= (float) arr[index]/max) screen[i + j*width_screen] = '#';
-      else screen[i + j*width_screen] = ' ';
-    }
-  }
-  for(char i : screen) cout << i;
-  cout << endl;
-  this_thread::sleep_for(chrono::milliseconds(wait));
-}
+  // sorting methods
+  void bubbleSort();
+  void shakerSort();
+  void combSort();
+  void bogoSort();
+  void radixSort();
+};
 
 void SortDemo::bubbleSort() {
-  int n = arr.size();
+  int n = v->size();
   bool swapped;
 
   for (int i = 0; i < n - 1; i++) {
     swapped = false;
     for (int j = 0; j < n - i - 1; j++) {
-        if (arr[j] > arr[j + 1]) {
-           swap(arr[j], arr[j + 1]);
+        if ((*v)[j] > (*v)[j + 1]) {
+           swap((*v)[j], (*v)[j + 1]);
            swapped = true;
         }
-        demo(arr, 17);
+        demo();
     }
     if (!swapped) break;
   }
 }
 
 void SortDemo::shakerSort() {
-  if (arr.empty()) {
+  if (v->empty()) {
     return;
   }
   int left = 0;
-  int right = arr.size() - 1;
+  int right = v->size() - 1;
   while (left <= right) {
     for (int i = right; i > left; --i) {
-      if (arr[i - 1] > arr[i]) {
-        swap(arr[i - 1], arr[i]);
+      if ((*v)[i - 1] > (*v)[i]) {
+        swap((*v)[i - 1], (*v)[i]);
       }
-      demo(arr, 17);
+      demo();
     }
     ++left;
     for (int i = left; i < right; ++i) {
-      if (arr[i] > arr[i + 1]) {
-        swap(arr[i], arr[i + 1]);
+      if ((*v)[i] > (*v)[i + 1]) {
+        swap((*v)[i], (*v)[i + 1]);
       }
-      demo(arr, 17);
+      demo();
     }
     --right;
   }
@@ -102,22 +122,22 @@ void SortDemo::shakerSort() {
 
 void SortDemo::combSort() {
   const double factor = 1.247;
-  double step = arr.size() - 1;
+  double step = v->size() - 1;
 
   while (step >= 1) {
-    for (int i = 0; i + step < arr.size(); ++i) {
-      if (arr[i] > arr[i + step]) {
-        swap(arr[i], arr[i + step]);
+    for (int i = 0; i + step < v->size(); ++i) {
+      if ((*v)[i] > (*v)[i + step]) {
+        swap((*v)[i], (*v)[i + step]);
       }
-      demo(arr, 17);
+      demo();
     }
     step /= factor;
   }
 }
 
 bool SortDemo::isSorted() {
-    for (size_t i = 1; i < arr.size(); ++i) {
-        if (arr[i] < arr[i - 1]) {
+    for (size_t i = 1; i < v->size(); ++i) {
+        if ((*v)[i] < (*v)[i - 1]) {
             return false;
         }
     }
@@ -126,35 +146,35 @@ bool SortDemo::isSorted() {
 
 void SortDemo::bogoSort() {
     while (!isSorted()) {
-        for (size_t i = 0; i < arr.size(); ++i) {
-            size_t j = rand() % arr.size();
-            swap(arr[i], arr[j]);
-            demo(arr, 17);
+        for (size_t i = 0; i < v->size(); ++i) {
+            size_t j = rand() % v->size();
+            swap((*v)[i], (*v)[j]);
+            demo();
         }
     }
 }
 
 int SortDemo::getMax(){
-    int mx = arr[0];
-    for (int i = 1; i < arr.size(); i++)
-        if (arr[i] > mx)
-            mx = arr[i];
+    int mx = (*v)[0];
+    for (int i = 1; i < v->size(); i++)
+        if ((*v)[i] > mx)
+            mx = (*v)[i];
     return mx;
 }
 
 void SortDemo::countSort(int exp){
-    int output[arr.size()];
+    int output[v->size()];
     int i, count[10] = { 0 };
 
-    for (i = 0; i < arr.size(); i++) count[(arr[i] / exp) % 10]++;
+    for (i = 0; i < v->size(); i++) count[((*v)[i] / exp) % 10]++;
     for (i = 1; i < 10; i++) count[i] += count[i - 1];
-    for (i = arr.size() - 1; i >= 0; i--) {
-        output[count[(arr[i] / exp) % 10] - 1] = arr[i];
-        count[(arr[i] / exp) % 10]--;
+    for (i = v->size() - 1; i >= 0; i--) {
+        output[count[((*v)[i] / exp) % 10] - 1] = (*v)[i];
+        count[((*v)[i] / exp) % 10]--;
     }
-    for (i = 0; i < arr.size(); i++) {
-      arr[i] = output[i];
-      demo(arr, 17);
+    for (i = 0; i < v->size(); i++) {
+      (*v)[i] = output[i];
+      demo();
     }
 }
 
